@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from gplearn.genetic import SymbolicRegressor
 from sklearn.metrics import mean_absolute_error
+from collections import defaultdict
 
 df = pd.read_excel("data_gp.xlsx")
 X = df[['t', 'mu', 'RA', 'XA', 'XB', 'QA', 'Nd']].values
@@ -22,3 +23,34 @@ for pc in np.arange(0.5, 0.95, 0.025):
 
             with open("program_depth_mae.txt", "a") as f:
                 f.write(f"pc: {pc}   ps: {ps}   ph: {ps}   pp: {1-pc-ps-ps}   p_coef: {parsimony}   {program}   {depth}   {mae}\n")
+
+
+# Input and output file paths
+input_file = "program_depth_mae.txt"
+output_file = "grouped_programs.txt"
+
+# Dictionary to group lines by the 5th value
+grouped_lines = defaultdict(list)
+
+# Read and group lines
+with open(input_file, "r") as f:
+    for line in f:
+        parts = line.strip().split()
+        if len(parts) >= 5:
+            key = parts[-2]
+            grouped_lines[key].append(line)
+        else:
+            print(f"Skipping line (too few columns): {line.strip()}")
+
+
+# Sort lines based on the MAE value in each group
+def extract_last_number(line):
+    return float(line.strip().split()[-1])  # convert last token to float
+
+for key in sorted(grouped_lines):
+    grouped_lines[key] = sorted(grouped_lines[key], key=extract_last_number)
+
+# Write grouped lines to output
+with open(output_file, "w") as f:
+    for key in sorted(grouped_lines):  # or just use grouped_lines if order doesn't matter
+        f.writelines(grouped_lines[key])
