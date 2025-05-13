@@ -21,36 +21,47 @@ for pc in np.arange(0.5, 0.95, 0.025):
             y_pred = est_gp.predict(X)
             mae = mean_absolute_error(y, y_pred)
 
-            with open("program_depth_mae.txt", "a") as f:
-                f.write(f"pc: {pc}   ps: {ps}   ph: {ps}   pp: {1-pc-ps-ps}   p_coef: {parsimony}   {program}   {depth}   {mae}\n")
+            with open("program_length_depth_mae.txt", "a") as f:
+                f.write(f"pc: {pc}   ps: {ps}   ph: {ps}   pp: {1-pc-ps-ps}   p_coef: {parsimony}   {program}   length: {length}   depth: {depth}   mae: {mae}\n")
 
 
 # Input and output file paths
-input_file = "program_depth_mae.txt"
-output_file = "grouped_programs.txt"
+input_file = "program_length_depth_mae.txt"
+output_file_depth = "grouped_programs_depth.txt"
+output_file_length = "grouped_programs_length.txt"
 
-# Dictionary to group lines by the 5th value
-grouped_lines = defaultdict(list)
+grouped_lines_length = defaultdict(list)
+grouped_lines_depth = defaultdict(list)
 
-# Read and group lines
+# Read and group lines based on length
 with open(input_file, "r") as f:
     for line in f:
         parts = line.strip().split()
-        if len(parts) >= 5:
-            key = parts[-2]
-            grouped_lines[key].append(line)
-        else:
-            print(f"Skipping line (too few columns): {line.strip()}")
+        key = parts[-5]
+        grouped_lines_length[key].append(line)
 
+# Read and group lines based on depth
+with open(input_file, "r") as f:
+    for line in f:
+        parts = line.strip().split()
+        key = parts[-3]
+        grouped_lines_depth[key].append(line)
 
 # Sort lines based on the MAE value in each group
 def extract_last_number(line):
     return float(line.strip().split()[-1])  # convert last token to float
 
-for key in sorted(grouped_lines):
-    grouped_lines[key] = sorted(grouped_lines[key], key=extract_last_number)
+for key in sorted(grouped_lines_length):
+    grouped_lines_length[key] = sorted(grouped_lines_length[key], key=extract_last_number)
+
+for key in sorted(grouped_lines_depth):
+    grouped_lines_depth[key] = sorted(grouped_lines_depth[key], key=extract_last_number)
 
 # Write grouped lines to output
-with open(output_file, "w") as f:
-    for key in sorted(grouped_lines):  # or just use grouped_lines if order doesn't matter
-        f.writelines(grouped_lines[key])
+with open(output_file_length, "w") as f:
+    for key in sorted(grouped_lines_length):  # or just use grouped_lines if order doesn't matter
+        f.writelines(grouped_lines_length[key])
+
+with open(output_file_depth, "w") as f:
+    for key in sorted(grouped_lines_depth):  # or just use grouped_lines if order doesn't matter
+        f.writelines(grouped_lines_depth[key])
