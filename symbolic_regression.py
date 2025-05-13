@@ -17,6 +17,7 @@ for pc in np.arange(0.5, 0.95, 0.025):
 
             est_gp.fit(X, y)
             program = str(est_gp._program)
+            length = est_gp._program.length_
             depth = est_gp._program.depth_
             y_pred = est_gp.predict(X)
             mae = mean_absolute_error(y, y_pred)
